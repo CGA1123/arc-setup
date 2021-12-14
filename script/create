@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -euxo pipefail
+
+# need az, go, terraform, helm, kubectl
+
+# Login to azure
+az login
+
+# Configure cluster
+go run .
+
+# Create AKS Cluster
+terraform apply -target azurerm_resource_group.arc
+
+# Create NGINX Ingress, Cert Manager, and ARC
+terraform apply \
+  -target helm_release.ingress \
+  -target helm_release.cert-manager \
+  -target helm_release.arc
+
+# Create a RunnerDeployment + Autoscaler
+# Create an ingress route for webhooks
+terraform apply

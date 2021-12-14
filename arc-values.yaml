@@ -1,0 +1,37 @@
+authSecret:
+  create: true
+  name: "arc-github-app"
+  annotations: {}
+
+serviceAccount:
+  create: true
+  name: "arc-svc-account"
+
+service:
+  type: ClusterIP
+  port: 443
+  annotations: {}
+
+metrics:
+  serviceMonitor: false
+  proxy:
+    enabled: false
+
+scope:
+  singleNamespace: true
+  watchNamespace: "arc-runners"
+
+githubWebhookServer:
+  enabled: true
+  replicaCount: 1
+  syncPeriod: 10m
+  secret:
+    create: true
+    name: "arc-webhook-server"
+  service:
+    type: ClusterIP
+    ports:
+      - port: 80
+        targetPort: http
+        protocol: TCP
+        name: http
