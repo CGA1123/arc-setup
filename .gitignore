@@ -2,5 +2,3 @@
 terraform.tfstate*
 terraform.tfvars
 terraform.tfvars.json
-nope.txt
-notes
