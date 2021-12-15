@@ -21,10 +21,12 @@ RUN apt-get install -y \
 
 RUN apt-key add identities/terraform.asc
 RUN apt-key add identities/microsoft.asc
+RUN apt-key add identities/gh-cli.asc
 RUN apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
 RUN apt-add-repository "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main"
+RUN apt-add-repository "deb [arch=amd64] https://cli.github.com/packages $(lsb_release -cs) main"
 RUN apt-get update
-RUN apt-get install terraform='1.1.0' azure-cli='2.31.0-1~focal'
+RUN apt-get install -y terraform='1.1.0' azure-cli='2.31.0-1~focal' gh='2.3.0'
 
 COPY --from=gobuilder /setup /usr/local/bin/arc-setup
 
@@ -33,15 +35,8 @@ USER arc-tester
 
 COPY --chown="arc-tester:arc-tester" profile /home/arc-tester/.profile
 COPY --chown="arc-tester:arc-tester" \
+  terraform/* \
   setup.sh \
-  arc-values.yaml \
-  azure.tf \
-  helm.tf \
-  k8s.tf \
-  providers.tf \
-  inputs.tf \
-  .terraform.lock.hcl \
-  output.tf \
   /home/arc-tester/arc-setup/
 
 WORKDIR /home/arc-tester/arc-setup

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -13,6 +14,8 @@ import (
 )
 
 const VarFileName = "terraform.tfvars.json"
+const SubscriptionFile = "login.json"
+const UserFile = "user.json"
 
 type TfVars struct {
 	SubscriptionID   string `json:"subscription_id"`
@@ -110,21 +113,28 @@ func main() {
 	ghes := false
 	ask(isGHES, &ghes)
 	if ghes {
-		ask(ghesURL, &vars.EnterpriseURL)
+		ask(ghesURL, &vars.EnterpriseURL, survey.WithValidator(urlValidator()))
 	}
 
-	// TODO: get organization slug
-	// https://github.com/settings/organizations
-	ask(githubOrg, &vars.Organization)
-	// TODO: get runner group
-	ask(runnerGroup, &vars.RunnerGroup)
-	// https://github.com/organizations/CGA1123-but-as-an-org/settings/actions/runner-groups
-	// TODO: get application ID
-	// https://github.com/organizations/CGA1123-but-as-an-org/settings/apps
-	ask(appID, &vars.AppID)
+	baseURL := "https://github.com"
+	if ghes {
+		parsed, err := url.Parse(vars.EnterpriseURL)
+		if err != nil {
+			fmt.Printf("failed to parse enterprise url: %v", err)
+			os.Exit(1)
+		}
 
-	// TODO: get application installation ID
-	ask(installationID, &vars.InstallationID)
+		baseURL = fmt.Sprintf("%v://%v", parsed.Scheme, parsed.Host)
+	}
+
+	fmt.Printf("ℹ You can see the GitHub Organizations you have access to here: %v/settings/organizations\n", baseURL)
+	ask(githubOrg, &vars.Organization)
+
+	fmt.Printf("ℹ You can see the GitHub Actions Runner Groups you have access to here: %v/organizations/%v/settings/actions/runner-groups\n", baseURL, vars.Organization)
+	ask(runnerGroup, &vars.RunnerGroup)
+
+	fmt.Printf("ℹ You can see the GitHub Apps you have access to here: %v/organizations/%v/settings/apps\n", baseURL, vars.Organization)
+	ask(appID, &vars.AppID)
 	ask(webhookSecret, &vars.WebhookSecret)
 
 	privateKeyStr := ""
@@ -149,6 +159,9 @@ func main() {
 
 	vars.PrivateKey = tmp.Name()
 
+	fmt.Printf("ℹ You can find the GitHub App Installation ID here: %v/organizations/%v/settings/installations\n", baseURL, vars.Organization)
+	ask(installationID, &vars.InstallationID)
+
 	b := &bytes.Buffer{}
 	enc := json.NewEncoder(b)
 	enc.SetIndent("", "    ")
@@ -163,8 +176,8 @@ func main() {
 	}
 }
 
-func ask(p survey.Prompt, t interface{}) {
-	handleSurveryErr(survey.AskOne(p, t, survey.WithValidator(survey.Required)))
+func ask(p survey.Prompt, t interface{}, opts ...survey.AskOpt) {
+	handleSurveryErr(survey.AskOne(p, t, append(opts, survey.WithValidator(survey.Required))...))
 }
 
 func handleSurveryErr(err error) {
@@ -178,4 +191,19 @@ func handleSurveryErr(err error) {
 		fmt.Printf("err: %v\n", err)
 	}
 	os.Exit(1)
+}
+
+func urlValidator() survey.Validator {
+	return func(answer interface{}) error {
+		str, ok := answer.(string)
+		if !ok {
+			return fmt.Errorf("answer must be a string")
+		}
+
+		if _, err := url.Parse(str); err != nil {
+			return fmt.Errorf("answer must be a url: %w", err)
+		}
+
+		return nil
+	}
 }
