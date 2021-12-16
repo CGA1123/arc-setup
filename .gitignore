@@ -2,3 +2,8 @@
 terraform.tfstate*
 terraform.tfvars
 terraform.tfvars.json
+azure_email.txt
+azure_locations.json
+azure_subscriptions.json
+github_host.txt
+github_orgs.json
