@@ -17,6 +17,7 @@ RUN apt-get install -y \
   gnupg \
   lsb-release \
   vim \
+  jq \
   software-properties-common
 
 RUN apt-key add identities/terraform.asc
