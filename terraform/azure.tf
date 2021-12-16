@@ -20,7 +20,6 @@ resource "azurerm_kubernetes_cluster" "arc" {
     name                   = "agentpool"
     node_labels            = {}
     node_taints            = []
-    orchestrator_version   = "1.20.9"
     os_disk_size_gb        = 128
     os_disk_type           = "Managed"
     tags                   = {}
