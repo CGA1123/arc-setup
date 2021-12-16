@@ -99,6 +99,7 @@ resource "kubernetes_ingress" "webhook-ingress" {
 
   spec {
     rule {
+      host = "${var.dns_prefix}.${azurerm_resource_group.arc.location}.cloudapp.azure.com"
       http {
         path {
           path = "/(.*)"
