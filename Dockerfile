@@ -3,7 +3,7 @@ FROM golang:1.17-bullseye AS gobuilder
 WORKDIR /app
 COPY . .
 
-RUN go build -o /setup -mod vendor ./cmd/setup
+RUN go build -o /setup -mod vendor ./cmd/arc-setup
 
 FROM ubuntu:20.04
 
