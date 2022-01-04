@@ -25,11 +25,13 @@ RUN apt-get install -y \
 RUN apt-key add identities/terraform.asc
 RUN apt-key add identities/microsoft.asc
 RUN apt-key add identities/gh-cli.asc
+RUN apt-key add identities/ngrok.asc
 RUN apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
 RUN apt-add-repository "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main"
 RUN apt-add-repository "deb [arch=amd64] https://cli.github.com/packages $(lsb_release -cs) main"
+RUN apt-add-repository "deb [arch=amd64] https://ngrok-agent.s3.amazonaws.com buster main"
 RUN apt-get update
-RUN apt-get install -y terraform='1.1.0' azure-cli='2.31.0-1~focal' gh
+RUN apt-get install -y terraform='1.1.0' azure-cli='2.31.0-1~focal' gh ngrok
 
 COPY --from=gobuilder /setup /usr/local/bin/arc-setup
 
