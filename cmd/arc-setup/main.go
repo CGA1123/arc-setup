@@ -182,9 +182,9 @@ func realMain() error {
 		return fmt.Errorf("failed to encode gamf payload: %w", err)
 	}
 
-	res, err := http.DefaultClient.Post("https://gamf.bissy.io/start", "application/json", bytes.NewReader(manifestPayload))
+	res, err := http.DefaultClient.Post("https://gamf.svc.bissy.io/start", "application/json", bytes.NewReader(manifestPayload))
 	if err != nil {
-		return fmt.Errorf("failed to make request to https://gamf.bissy.io/start: %w", err)
+		return fmt.Errorf("failed to make request to https://gamf.svc.bissy.io/start: %w", err)
 	}
 
 	if res.StatusCode > 399 || res.StatusCode < 200 {
@@ -209,9 +209,9 @@ func realMain() error {
 		Code string `json:"code"`
 	}
 	for i := 0; i < 10; i++ {
-		res, err := http.DefaultClient.Post("https://gamf.bissy.io/code/"+startResponse.Key, "", nil)
+		res, err := http.DefaultClient.Post("https://gamf.svc.bissy.io/code/"+startResponse.Key, "", nil)
 		if err != nil {
-			return fmt.Errorf("failed to make request to https://gamf.bissy.io/start: %w", err)
+			return fmt.Errorf("failed to make request to https://gamf.svc.bissy.io/start: %w", err)
 		}
 
 		if res.StatusCode > 399 || res.StatusCode < 200 {
