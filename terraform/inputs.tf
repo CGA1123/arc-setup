@@ -26,7 +26,7 @@ variable "letsencrypt_email" {
 variable "enterprise_url" {
   description = "GitHub Enterprise Server URL"
   type        = string
-  nullable    = true
+  default     = ""
 }
 
 variable "app_id" {
