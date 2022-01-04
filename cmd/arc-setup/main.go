@@ -57,7 +57,7 @@ type TfVars struct {
 	Location         string `json:"location"`
 	DNSPrefix        string `json:"dns_prefix"`
 	LetsEncryptEmail string `json:"letsencrypt_email"`
-	EnterpriseURL    string `json:"enterprise_url,omitempty"`
+	EnterpriseURL    string `json:"enterprise_url"`
 	AppID            string `json:"app_id"`
 	InstallationID   string `json:"installation_id"`
 	PrivateKey       string `json:"private_key"`
