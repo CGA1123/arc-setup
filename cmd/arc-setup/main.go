@@ -393,7 +393,7 @@ func loadHost() (string, error) {
 		return "", fmt.Errorf("failed to read file: %w", err)
 	}
 
-	return strings.TrimSpace(string(b)), nil
+	return strings.TrimPrefix(strings.TrimSpace(string(b)), "api."), nil
 }
 
 func loadSubscriptions() (map[string]string, error) {
