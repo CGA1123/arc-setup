@@ -5,6 +5,17 @@ COPY . .
 
 RUN go build -o /setup -mod vendor ./cmd/arc-setup
 
+FROM golang:1.17-bullseye AS gamfbuilder
+
+WORKDIR /app
+
+ADD https://github.com/CGA1123/gamf/archive/main.tar.gz /tmp/gamf.tgz
+RUN tar -xvf /tmp/gamf.tgz
+
+WORKDIR /app/gamf-main
+
+RUN go build -o /gamf -mod vendor ./
+
 FROM ubuntu:20.04
 
 LABEL org.opencontainers.image.source=https://github.com/CGA1123/arc-setup
@@ -34,6 +45,7 @@ RUN apt-get update
 RUN apt-get install -y terraform='1.1.0' azure-cli='2.31.0-1~focal' gh ngrok
 
 COPY --from=gobuilder /setup /usr/local/bin/arc-setup
+COPY --from=gamfbuilder /gamf /usr/local/bin/gamf
 
 RUN useradd --create-home --shell /bin/bash arc-tester
 USER arc-tester
