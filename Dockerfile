@@ -7,6 +7,8 @@ RUN go build -o /setup -mod vendor ./cmd/arc-setup
 
 FROM ubuntu:20.04
 
+LABEL org.opencontainers.image.source=https://github.com/CGA1123/arc-setup
+
 COPY identities identities
 RUN apt-get update
 
@@ -27,7 +29,7 @@ RUN apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(ls
 RUN apt-add-repository "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main"
 RUN apt-add-repository "deb [arch=amd64] https://cli.github.com/packages $(lsb_release -cs) main"
 RUN apt-get update
-RUN apt-get install -y terraform='1.1.0' azure-cli='2.31.0-1~focal' gh='2.3.0'
+RUN apt-get install -y terraform='1.1.0' azure-cli='2.31.0-1~focal' gh
 
 COPY --from=gobuilder /setup /usr/local/bin/arc-setup
 
