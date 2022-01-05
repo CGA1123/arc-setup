@@ -19,13 +19,15 @@ import (
 	"github.com/AlecAivazis/survey/v2/terminal"
 )
 
-const VarFileName = "terraform.tfvars.json"
-const AzureSubscriptionFile = "azure_subscriptions.json"
-const AzureEmailFile = "azure_email.txt"
-const AzureLocationsFile = "azure_locations.json"
-const GitHubHostFile = "github_host.txt"
-const GitHubOrgsFile = "github_orgs.json"
-const GitHubDotcomHost = "github.com"
+const (
+	VarFileName           = "terraform.tfvars.json"
+	AzureSubscriptionFile = "azure_subscriptions.json"
+	AzureEmailFile        = "azure_email.txt"
+	AzureLocationsFile    = "azure_locations.json"
+	GitHubHostFile        = "github_host.txt"
+	GitHubOrgsFile        = "github_orgs.json"
+	GitHubDotcomHost      = "github.com"
+)
 
 type manifestHookAttributes struct {
 	URL    string `json:"url"`
@@ -117,6 +119,11 @@ func realMain() error {
 
 	isGhes := githubHost != GitHubDotcomHost
 
+	gamfHost := "https://gamf.svc.bissy.io"
+	if envGamfHost := os.Getenv("GAMF_HOST"); envGamfHost != "" {
+		gamfHost = envGamfHost
+	}
+
 	azureSubscriptionsID := &survey.Select{
 		Message: "What Microsoft Azure Subscription ID do you want to use to create resources?",
 		Help:    "This is the subscriptions ID that will be used by Terraform to provision a new Azure Kubernetes Service (AKS) Cluster to deploy Actions Runner Controller and related require resources to.",
@@ -140,7 +147,7 @@ func realMain() error {
 		Options: githubOrganizationNames,
 	}
 
-	// TODO: autocreate
+	// TODO: autocreate? requires gh cli login to have the correct permissions :thinking:
 	runnerGroup := &survey.Input{
 		Message: "GitHub Actions Runner Group:",
 		Help:    "This is the GitHub Actions Self-Hosted Runner Group that Actions Runner Controller will manager.",
@@ -182,9 +189,9 @@ func realMain() error {
 		return fmt.Errorf("failed to encode gamf payload: %w", err)
 	}
 
-	res, err := http.DefaultClient.Post("https://gamf.svc.bissy.io/start", "application/json", bytes.NewReader(manifestPayload))
+	res, err := http.DefaultClient.Post(gamfHost+"/start", "application/json", bytes.NewReader(manifestPayload))
 	if err != nil {
-		return fmt.Errorf("failed to make request to https://gamf.svc.bissy.io/start: %w", err)
+		return fmt.Errorf("failed to make request to %v/start: %w", gamfHost, err)
 	}
 
 	if res.StatusCode > 399 || res.StatusCode < 200 {
@@ -209,9 +216,9 @@ func realMain() error {
 		Code string `json:"code"`
 	}
 	for i := 0; i < 10; i++ {
-		res, err := http.DefaultClient.Post("https://gamf.svc.bissy.io/code/"+startResponse.Key, "", nil)
+		res, err := http.DefaultClient.Post(gamfHost+"/code/"+startResponse.Key, "", nil)
 		if err != nil {
-			return fmt.Errorf("failed to make request to https://gamf.svc.bissy.io/start: %w", err)
+			return fmt.Errorf("failed to make request to %v/start: %w", gamfHost, err)
 		}
 
 		if res.StatusCode > 399 || res.StatusCode < 200 {
