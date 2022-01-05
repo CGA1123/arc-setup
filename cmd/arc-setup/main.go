@@ -176,7 +176,7 @@ func realMain() error {
 	}
 	orgID := githubOrganizations[vars.Organization]
 
-	hookUrl := fmt.Sprintf("https://%v.%v.cloudapp.azure.com", randomName, vars.Location)
+	hookUrl := fmt.Sprintf("https://%v.%v.cloudapp.azure.com", namePrefix, vars.Location)
 	manifestPayload, err := json.Marshal(buildGamfPayload(namePrefix, vars.Organization, githubHost, hookUrl))
 	if err != nil {
 		return fmt.Errorf("failed to encode gamf payload: %w", err)
