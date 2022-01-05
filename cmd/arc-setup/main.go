@@ -355,7 +355,7 @@ func buildGamfPayload(appName, org, ghHost, hookUrl string) gamfPayload {
 			Description:   "Autocreated Actions Runner Controller Application",
 			Public:        false,
 			CallbackURLs:  []string{},
-			DefaultEvents: []string{"workflow_run", "check_run"},
+			DefaultEvents: []string{"workflow_job", "check_run"},
 			DefaultPermissions: map[string]string{
 				"organization_self_hosted_runners": "write",
 				"actions":                          "read",
