@@ -31,7 +31,8 @@ RUN apt-get install -y \
   lsb-release \
   vim \
   jq \
-  software-properties-common
+  software-properties-common \
+  netcat
 
 RUN apt-key add identities/terraform.asc
 RUN apt-key add identities/microsoft.asc
