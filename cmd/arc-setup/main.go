@@ -21,9 +21,6 @@ import (
 
 const (
 	VarFileName           = "terraform.tfvars.json"
-	AzureSubscriptionFile = "azure_subscriptions.json"
-	AzureEmailFile        = "azure_email.txt"
-	AzureLocationsFile    = "azure_locations.json"
 	GitHubHostFile        = "github_host.txt"
 	GitHubOrgsFile        = "github_orgs.json"
 	GitHubDotcomHost      = "github.com"
@@ -54,11 +51,7 @@ type gamfPayload struct {
 }
 
 type TfVars struct {
-	SubscriptionID   string `json:"subscription_id"`
-	ResourceGroup    string `json:"resource_group"`
-	Location         string `json:"location"`
 	DNSPrefix        string `json:"dns_prefix"`
-	LetsEncryptEmail string `json:"letsencrypt_email"`
 	EnterpriseURL    string `json:"enterprise_url"`
 	AppID            string `json:"app_id"`
 	InstallationID   string `json:"installation_id"`
@@ -76,26 +69,6 @@ func main() {
 }
 
 func realMain() error {
-	azureSubscriptions, err := loadSubscriptions()
-	if err != nil {
-		return err
-	}
-
-	azureSubscriptionsNames := make([]string, 0, len(azureSubscriptions))
-	for name := range azureSubscriptions {
-		azureSubscriptionsNames = append(azureSubscriptionsNames, name)
-	}
-
-	azureLocations, err := loadLocations()
-	if err != nil {
-		return err
-	}
-
-	azureEmail, err := loadEmail()
-	if err != nil {
-		return err
-	}
-
 	githubHost, err := loadHost()
 	if err != nil {
 		return err
@@ -124,23 +97,6 @@ func realMain() error {
 		gamfHost = envGamfHost
 	}
 
-	azureSubscriptionsID := &survey.Select{
-		Message: "What Microsoft Azure Subscription ID do you want to use to create resources?",
-		Help:    "This is the subscriptions ID that will be used by Terraform to provision a new Azure Kubernetes Service (AKS) Cluster to deploy Actions Runner Controller and related require resources to.",
-		Options: azureSubscriptionsNames,
-	}
-
-	azureLocation := &survey.Select{
-		Message: "In which Azure Region should we provision resources?",
-		Options: azureLocations,
-	}
-
-	letEncrypt := &survey.Input{
-		Message: "What email address should be used to get a Let's Encrypt TLS Certificate for the webhook server?",
-		Default: azureEmail,
-		Help:    "In order to create a secure ingress route to the Actions Runner Controller Webhook server, we need to generate a TLS certificate for it via Let's Encrypt. We need an email address in order to do that!",
-	}
-
 	githubOrg := &survey.Select{
 		Message: "GitHub Org:",
 		Help:    "This is the GitHub Organization which the Actions Runner Controller will manager Self-Hosted Runners on.",
@@ -165,24 +121,12 @@ func realMain() error {
 		vars.EnterpriseURL = baseURL
 	}
 
-	// Azure
-	subName := ""
-	if err := ask(azureSubscriptionsID, &subName); err != nil {
-		return err
-	}
-	vars.SubscriptionID = azureSubscriptions[subName]
-
-	if err := ask(azureLocation, &vars.Location); err != nil {
-		return err
-	}
-	if err := ask(letEncrypt, &vars.LetsEncryptEmail); err != nil {
-		return err
-	}
 	if err := ask(githubOrg, &vars.Organization); err != nil {
 		return err
 	}
 	orgID := githubOrganizations[vars.Organization]
 
+    // TODO: Codespace URL
 	hookUrl := fmt.Sprintf("https://%v.%v.cloudapp.azure.com", namePrefix, vars.Location)
 	manifestPayload, err := json.Marshal(buildGamfPayload(namePrefix, vars.Organization, githubHost, hookUrl))
 	if err != nil {

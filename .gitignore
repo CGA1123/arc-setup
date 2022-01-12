@@ -1,4 +1,5 @@
 .terraform/
+.overmind.sock
 terraform.tfstate*
 terraform.tfvars
 terraform.tfvars.json
