@@ -18,5 +18,5 @@ sudo mv overmind-v2.2.2-linux-amd64 /usr/local/bin/overmind
 # helm
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-minikube addons enable ingress
 minikube start
+minikube addons enable ingress
