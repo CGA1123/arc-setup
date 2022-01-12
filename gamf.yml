@@ -1,0 +1,68 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gamf-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: "/$1"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+spec:
+  rules:
+  - host: localhost
+    http:
+      paths:
+      - path: /gamf
+        pathType: Exact
+        backend:
+          service:
+            name: gamf
+            port:
+              number: 80
+      - path: /gamf/(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: gamf
+            port:
+              number: 80
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: gamf
+spec:
+  selector:
+    run: gamf
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 1123
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gamf
+spec:
+  selector:
+    matchLabels:
+      run: gamf
+  replicas: 1 # single replica as we are using in-memory store.
+  template:
+    metadata:
+      labels:
+        run: gamf
+    spec:
+      containers:
+      - name: gamf
+        image: ghcr.io/cga1123/gamf:latest
+        ports:
+        - containerPort: 1123
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: GAMF_EPHEMERAL
+            value: "true"
