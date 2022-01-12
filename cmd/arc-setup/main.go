@@ -20,10 +20,10 @@ import (
 )
 
 const (
-	VarFileName           = "terraform.tfvars.json"
-	GitHubHostFile        = "github_host.txt"
-	GitHubOrgsFile        = "github_orgs.json"
-	GitHubDotcomHost      = "github.com"
+	VarFileName      = "terraform.tfvars.json"
+	GitHubHostFile   = "github_host.txt"
+	GitHubOrgsFile   = "github_orgs.json"
+	GitHubDotcomHost = "github.com"
 )
 
 type manifestHookAttributes struct {
@@ -51,14 +51,14 @@ type gamfPayload struct {
 }
 
 type TfVars struct {
-	DNSPrefix        string `json:"dns_prefix"`
-	EnterpriseURL    string `json:"enterprise_url"`
-	AppID            string `json:"app_id"`
-	InstallationID   string `json:"installation_id"`
-	PrivateKey       string `json:"private_key"`
-	WebhookSecret    string `json:"webhook_secret"`
-	Organization     string `json:"organization"`
-	RunnerGroup      string `json:"runner_group"`
+	DNSPrefix      string `json:"dns_prefix"`
+	EnterpriseURL  string `json:"enterprise_url"`
+	AppID          string `json:"app_id"`
+	InstallationID string `json:"installation_id"`
+	PrivateKey     string `json:"private_key"`
+	WebhookSecret  string `json:"webhook_secret"`
+	Organization   string `json:"organization"`
+	RunnerGroup    string `json:"runner_group"`
 }
 
 func main() {
@@ -91,6 +91,7 @@ func realMain() error {
 	}
 
 	isGhes := githubHost != GitHubDotcomHost
+	codespaces := "https://CODESPACE_NAME-80.githubpreview.dev"
 
 	gamfHost := "https://gamf.svc.bissy.io"
 	if envGamfHost := os.Getenv("GAMF_HOST"); envGamfHost != "" {
@@ -126,8 +127,8 @@ func realMain() error {
 	}
 	orgID := githubOrganizations[vars.Organization]
 
-    // TODO: Codespace URL
-	hookUrl := fmt.Sprintf("https://%v.%v.cloudapp.azure.com", namePrefix, vars.Location)
+	// TODO: Codespace URL
+	hookUrl := fmt.Sprintf("https://%v.%v.githubpreview.dev/webhook", namePrefix, vars.Location)
 	manifestPayload, err := json.Marshal(buildGamfPayload(namePrefix, vars.Organization, githubHost, hookUrl))
 	if err != nil {
 		return fmt.Errorf("failed to encode gamf payload: %w", err)
