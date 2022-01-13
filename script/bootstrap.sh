@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # install tmux, socat
-sudo apt-get install socat tmux
+sudo apt-get install -y socat tmux
 
 # install minikube
 if [[ ! -f /usr/local/bin/minikube ]]; then
