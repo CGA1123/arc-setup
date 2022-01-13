@@ -2,21 +2,43 @@
 
 set -euo pipefail
 
-# tmux, socat
+# install tmux, socat
 sudo apt-get install socat tmux
 
 # install minikube
-curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-sudo install minikube-linux-amd64 /usr/local/bin/minikube
+if [[ ! -f /usr/local/bin/minikube ]]; then
+  curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+  chmod +x minikube-linux-amd64
+  sudo mv minikube-linux-amd64 /usr/local/bin/minikube
+fi
 
-# overmind
-wget https://github.com/DarthSim/overmind/releases/download/v2.2.2/overmind-v2.2.2-linux-amd64.gz
-gunzip -d overmind-v2.2.2-linux-amd64.gz
-chmod +x overmind-v2.2.2-linux-amd64
-sudo mv overmind-v2.2.2-linux-amd64 /usr/local/bin/overmind
+# install overmind
+if [[ ! -f /usr/local/bin/overmind ]]; then
+  wget https://github.com/DarthSim/overmind/releases/download/v2.2.2/overmind-v2.2.2-linux-amd64.gz
+  gunzip -d overmind-v2.2.2-linux-amd64.gz
+  chmod +x overmind-v2.2.2-linux-amd64
+  sudo mv overmind-v2.2.2-linux-amd64 /usr/local/bin/overmind
+fi
 
 # helm
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+if [[ ! -f /usr/local/bin/helm ]]; then
+  curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+fi
 
+# boot our cluster
 minikube start
-minikube addons enable ingress
+
+# setup our ingress
+helm upgrade \
+  --install  \
+  --repo https://kubernetes.github.io/ingress-nginx \
+  --namespace ingress-nginx \
+  --create-namespace \
+  --wait \
+  ingress-nginx \
+  ingress-nginx
+
+# spin up our GitHub App Manifest Flow server (for app creation)
+kubectl apply -f gamf.yml
+
+overmind start -D
