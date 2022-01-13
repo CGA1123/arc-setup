@@ -60,9 +60,11 @@ spec:
       containers:
       - name: gamf
         image: ghcr.io/cga1123/gamf:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 1123
-        imagePullPolicy: IfNotPresent
         env:
           - name: GAMF_EPHEMERAL
             value: "true"
+          - name: GAMF_URL
+            value: "https://${CODESPACE_NAME}-80.githubpreview.dev/gamf"

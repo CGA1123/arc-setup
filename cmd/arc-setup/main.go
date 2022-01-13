@@ -51,7 +51,6 @@ type gamfPayload struct {
 }
 
 type TfVars struct {
-	DNSPrefix      string `json:"dns_prefix"`
 	EnterpriseURL  string `json:"enterprise_url"`
 	AppID          string `json:"app_id"`
 	InstallationID string `json:"installation_id"`
@@ -63,7 +62,7 @@ type TfVars struct {
 
 func main() {
 	if err := realMain(); err != nil {
-		fmt.Printf("error: %v", err)
+      fmt.Printf("error: %v\n", err)
 		os.Exit(1)
 	}
 }
@@ -91,12 +90,13 @@ func realMain() error {
 	}
 
 	isGhes := githubHost != GitHubDotcomHost
-	codespaces := "https://CODESPACE_NAME-80.githubpreview.dev"
+    codespaceName := os.Getenv("CODESPACE_NAME")
+    if codespaceName == "" {
+      return fmt.Errorf("CODESPACE_NAME is empty")
+    }
 
-	gamfHost := "https://gamf.svc.bissy.io"
-	if envGamfHost := os.Getenv("GAMF_HOST"); envGamfHost != "" {
-		gamfHost = envGamfHost
-	}
+	codespacesURL := fmt.Sprintf("https://%v-80.githubpreview.dev", codespaceName)
+    gamfHost := fmt.Sprintf("%v/gamf", codespacesURL)
 
 	githubOrg := &survey.Select{
 		Message: "GitHub Org:",
@@ -115,8 +115,6 @@ func realMain() error {
 	}
 
 	vars := TfVars{}
-	vars.ResourceGroup = namePrefix
-	vars.DNSPrefix = namePrefix
 
 	if isGhes {
 		vars.EnterpriseURL = baseURL
@@ -127,8 +125,7 @@ func realMain() error {
 	}
 	orgID := githubOrganizations[vars.Organization]
 
-	// TODO: Codespace URL
-	hookUrl := fmt.Sprintf("https://%v.%v.githubpreview.dev/webhook", namePrefix, vars.Location)
+	hookUrl := fmt.Sprintf("%v/webhook", codespacesURL)
 	manifestPayload, err := json.Marshal(buildGamfPayload(namePrefix, vars.Organization, githubHost, hookUrl))
 	if err != nil {
 		return fmt.Errorf("failed to encode gamf payload: %w", err)
@@ -330,15 +327,6 @@ func randomName() (string, error) {
 	return "arc-setup-" + hex.EncodeToString(bytes), nil
 }
 
-func loadEmail() (string, error) {
-	b, err := ioutil.ReadFile(AzureEmailFile)
-	if err != nil {
-		return "", fmt.Errorf("failed to read file: %w", err)
-	}
-
-	return strings.TrimSpace(string(b)), nil
-}
-
 func loadHost() (string, error) {
 	b, err := ioutil.ReadFile(GitHubHostFile)
 	if err != nil {
@@ -346,51 +334,6 @@ func loadHost() (string, error) {
 	}
 
 	return strings.TrimPrefix(strings.TrimSpace(string(b)), "api."), nil
-}
-
-func loadSubscriptions() (map[string]string, error) {
-	b, err := ioutil.ReadFile(AzureSubscriptionFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
-	}
-
-	var subs []struct {
-		Name string `json:"name"`
-		ID   string `json:"id"`
-	}
-
-	if err := json.Unmarshal(b, &subs); err != nil {
-		return nil, fmt.Errorf("error unmarshaling subs: %w", err)
-	}
-
-	subMap := make(map[string]string, len(subs))
-	for _, sub := range subs {
-		subMap[sub.Name] = sub.ID
-	}
-
-	return subMap, nil
-}
-
-func loadLocations() ([]string, error) {
-	b, err := ioutil.ReadFile(AzureLocationsFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
-	}
-
-	var locs []struct {
-		Name string `json:"name"`
-	}
-
-	if err := json.Unmarshal(b, &locs); err != nil {
-		return nil, fmt.Errorf("error unmarshaling locations: %w", err)
-	}
-
-	locations := make([]string, len(locs))
-	for i, loc := range locs {
-		locations[i] = loc.Name
-	}
-
-	return locations, nil
 }
 
 func loadOrgs() (map[string]int, error) {

@@ -27,6 +27,7 @@ fi
 
 # boot our cluster
 minikube start
+overmind start -D
 
 # setup our ingress
 helm upgrade \
@@ -39,6 +40,6 @@ helm upgrade \
   ingress-nginx
 
 # spin up our GitHub App Manifest Flow server (for app creation)
-kubectl apply -f gamf.yml
+cat gamf.yml | envsubst | kubectl apply -f -
 
-overmind start -D
+gh cs ports visibility 80:public -c "${CODESPACE_NAME}"
