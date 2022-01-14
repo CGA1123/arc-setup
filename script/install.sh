@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 ./script/bootstrap.sh
 ./script/start.sh
 ./script/configure.sh

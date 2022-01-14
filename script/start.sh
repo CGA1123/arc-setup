@@ -7,7 +7,7 @@ minikube start
 echo "ℹ Forwarding our minikube port to localhost..."
 overmind start -D > /dev/null
 
-echo "ℹ Installing nginx-ingress..."
+echo "ℹ Installing ingress-nginx..."
 # setup our ingress
 helm upgrade \
   --install  \

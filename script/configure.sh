@@ -1,7 +1,13 @@
 #!/bin/bash
 
+set -euo pipefail
+
 # Ignore token + browser in codespaces
 if [[ ! -f "${HOME}/.config/gh/hosts.yml" ]]; then
+  echo "ℹ We need to log into GitHub in order to fetch available Orgs and the"
+  echo "  current host you are loging into (GitHub.com or a GHES instance.)"
+  echo "ℹ Press any key to continue..."
+  read -n 1
   GITHUB_TOKEN="" BROWSER="echo" gh auth login
 fi
 
@@ -20,6 +26,10 @@ else
 fi
 
 if [[ ! -f "data/arc.env" ]]; then
+  echo "ℹ We need some additional information to create the Actions Runner"
+  echo "  Controller GitHub App."
+  echo "ℹ Press any key to continue..."
+  read -n 1
   go run ./cmd/arc-setup
 else
   echo "ℹ Actions Runner Controller Chart values are known. (data/arc.env exists)"

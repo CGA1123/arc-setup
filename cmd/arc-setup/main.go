@@ -14,7 +14,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-    "time"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
@@ -101,14 +101,15 @@ func realMain() error {
 	gamfHost := fmt.Sprintf("%v/gamf", codespacesURL)
 
 	githubOrg := &survey.Select{
-		Message: "GitHub Org:",
+		Message: "Which GitHub Org should Actions Runner Controller be installed on?",
 		Help:    "This is the GitHub Organization which the Actions Runner Controller will manager Self-Hosted Runners on.",
 		Options: githubOrganizationNames,
 	}
 
 	// TODO: autocreate? requires gh cli login to have the correct permissions :thinking:
 	runnerGroup := &survey.Input{
-		Message: "GitHub Actions Runner Group:",
+		Message: "Which GitHub Actions Runner Group should Actions Runner Controller manage runners on?",
+		Default: "Default",
 		Help:    "This is the GitHub Actions Self-Hosted Runner Group that Actions Runner Controller will manager.",
 	}
 
@@ -192,22 +193,22 @@ func realMain() error {
 			url = "https://api.github.com/app-manifests/" + doneResponse.Code + "/conversions"
 		}
 
-        res, err := http.DefaultClient.Post(url, "", nil)
+		res, err := http.DefaultClient.Post(url, "", nil)
 		if err != nil {
 			return fmt.Errorf("failed to make request to GitHub: %w", err)
 		}
 
 		if res.StatusCode > 399 || res.StatusCode < 200 {
-            fmt.Printf("Got %s during conversion, retrying in 5s...\n", res.Status)
-            time.Sleep(5 * time.Second)
+			fmt.Printf("Got %s during conversion, retrying in 5s...\n", res.Status)
+			time.Sleep(5 * time.Second)
 			continue
 		}
 
-        if err := json.NewDecoder(res.Body).Decode(&conversionResponse); err != nil {
+		if err := json.NewDecoder(res.Body).Decode(&conversionResponse); err != nil {
 			return fmt.Errorf("error decoding response: %w", err)
 		}
 
-        break
+		break
 	}
 	if conversionResponse.ID == 0 {
 		return fmt.Errorf("failed to convert app manifest into application")
