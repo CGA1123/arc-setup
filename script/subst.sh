@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -a
-source arc.env
+source data/arc.env
 set +a
 
 envsubst < "${1}"

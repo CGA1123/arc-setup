@@ -14,6 +14,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+    "time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
@@ -21,9 +22,9 @@ import (
 )
 
 const (
-	VarFileName      = "arc.env"
-	GitHubHostFile   = "github_host.txt"
-	GitHubOrgsFile   = "github_orgs.json"
+	VarFileName      = "data/arc.env"
+	GitHubHostFile   = "data/github_host.txt"
+	GitHubOrgsFile   = "data/github_orgs.json"
 	GitHubDotcomHost = "github.com"
 )
 
@@ -190,18 +191,23 @@ func realMain() error {
 		} else {
 			url = "https://api.github.com/app-manifests/" + doneResponse.Code + "/conversions"
 		}
-		res, err := http.DefaultClient.Post(url, "", nil)
+
+        res, err := http.DefaultClient.Post(url, "", nil)
 		if err != nil {
 			return fmt.Errorf("failed to make request to GitHub: %w", err)
 		}
 
 		if res.StatusCode > 399 || res.StatusCode < 200 {
+            fmt.Printf("Got %s during conversion, retrying in 5s...\n", res.Status)
+            time.Sleep(5 * time.Second)
 			continue
 		}
 
-		if err := json.NewDecoder(res.Body).Decode(&conversionResponse); err != nil {
+        if err := json.NewDecoder(res.Body).Decode(&conversionResponse); err != nil {
 			return fmt.Errorf("error decoding response: %w", err)
 		}
+
+        break
 	}
 	if conversionResponse.ID == 0 {
 		return fmt.Errorf("failed to convert app manifest into application")

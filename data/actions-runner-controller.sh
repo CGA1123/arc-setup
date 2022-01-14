@@ -1,5 +1,3 @@
-#!/bin/bash
-
 set -euxo pipefail
 
 helm upgrade \
@@ -13,6 +11,6 @@ helm upgrade \
   --set authSecret.github_app_id="${ARC_GITHUB_APP_ID}" \
   --set authSecret.github_app_installation_id="${ARC_GITHUB_APP_INSTALLATION_ID}" \
   --set-file authSecret.github_app_private_key="${ARC_GITHUB_APP_PEM_FILE_PATH}" \
-  -f arc-values.yml \
+  -f data/arc-values.yml \
   actions-runner-controller \
   actions-runner-controller

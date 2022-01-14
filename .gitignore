@@ -1,13 +1,6 @@
-.terraform/
-arc.env
 .overmind.sock
-terraform.tfstate*
-terraform.tfvars
-terraform.tfvars.json
-azure_email.txt
-azure_locations.json
-azure_subscriptions.json
-github_host.txt
-github_orgs.json
+data/github_host.txt
+data/github_orgs.json
+data/arc.env
 arc-setup
 minikuke-linux-amd64
