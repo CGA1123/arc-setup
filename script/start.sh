@@ -20,7 +20,15 @@ helm upgrade \
 
 # cert-manager
 echo "ℹ Installing cert-manager..."
-kubectl apply -f "https://github.com/jetstack/cert-manager/releases/download/v1.6.1/cert-manager.yaml"
+helm install \
+  --repo https://charts.jetstack.io \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.6.1 \
+  --set installCRDs=true \
+  --wait \
+  cert-manager \
+  cert-manager
 
 # spin up our GitHub App Manifest Flow server (for app creation)
 echo "ℹ Installing GitHub App Manifest Flow service (for app creation)..."
