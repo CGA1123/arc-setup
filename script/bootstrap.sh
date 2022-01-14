@@ -25,24 +25,4 @@ if [[ ! -f /usr/local/bin/helm ]]; then
   curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 fi
 
-# boot our cluster
-minikube start
-overmind start -D
-
-# setup our ingress
-helm upgrade \
-  --install  \
-  --repo https://kubernetes.github.io/ingress-nginx \
-  --namespace ingress-nginx \
-  --create-namespace \
-  --wait \
-  ingress-nginx \
-  ingress-nginx
-
-# cert-manager
-kubectl apply -f "https://github.com/jetstack/cert-manager/releases/download/v1.6.1/cert-manager.yaml"
-
-# spin up our GitHub App Manifest Flow server (for app creation)
-cat gamf.yml | envsubst | kubectl apply -f -
-
 gh cs ports visibility 80:public -c "${CODESPACE_NAME}"

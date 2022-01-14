@@ -17,7 +17,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
-    env "github.com/Netflix/go-env"
+	env "github.com/Netflix/go-env"
 )
 
 const (
@@ -63,7 +63,7 @@ type Vars struct {
 
 func main() {
 	if err := realMain(); err != nil {
-      fmt.Printf("error: %v\n", err)
+		fmt.Printf("error: %v\n", err)
 		os.Exit(1)
 	}
 }
@@ -91,13 +91,13 @@ func realMain() error {
 	}
 
 	isGhes := githubHost != GitHubDotcomHost
-    codespaceName := os.Getenv("CODESPACE_NAME")
-    if codespaceName == "" {
-      return fmt.Errorf("CODESPACE_NAME is empty")
-    }
+	codespaceName := os.Getenv("CODESPACE_NAME")
+	if codespaceName == "" {
+		return fmt.Errorf("CODESPACE_NAME is empty")
+	}
 
 	codespacesURL := fmt.Sprintf("https://%v-80.githubpreview.dev", codespaceName)
-    gamfHost := fmt.Sprintf("%v/gamf", codespacesURL)
+	gamfHost := fmt.Sprintf("%v/gamf", codespacesURL)
 
 	githubOrg := &survey.Select{
 		Message: "GitHub Org:",
@@ -254,7 +254,7 @@ func realMain() error {
 		return fmt.Errorf("error encoding to env: %\n", err)
 	}
 
-    s := strings.Join(env.EnvSetToEnviron(es), "\n") + "\n"
+	s := strings.Join(env.EnvSetToEnviron(es), "\n") + "\n"
 	if err := os.WriteFile(VarFileName, []byte(s), 0600); err != nil {
 		return fmt.Errorf("error writing %v: %w\n", VarFileName, err)
 	}
