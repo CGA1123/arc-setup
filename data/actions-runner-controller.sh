@@ -1,4 +1,4 @@
-set -euxo pipefail
+set -euo pipefail
 
 helm upgrade \
   --install \

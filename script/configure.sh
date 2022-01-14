@@ -6,12 +6,14 @@ if [[ ! -f "${HOME}/.config/gh/hosts.yml" ]]; then
 fi
 
 if [[ ! -f "data/github_host.txt" ]]; then
+  echo "ℹ Fetching our GitHub Host"
   GITHUB_TOKEN="" gh api "/" --jq .current_user_url | awk -F[/:] '{print $4}' > data/github_host.txt
 else
   echo "ℹ GitHub Host is already known. (data/github_host.txt exists)"
 fi
 
 if [[ ! -f "data/github_orgs.json" ]]; then
+  echo "ℹ Fetching our GitHub Orgs"
   GITHUB_TOKEN="" gh api "/user/memberships/orgs?state=active" > data/github_orgs.json
 else
   echo "ℹ GitHub Orgs are already known. (data/github_orgs.json exists)"
@@ -24,11 +26,7 @@ else
 fi
 
 echo "ℹ Installing Actions Runner Controller..."
-echo "Press any key to continue."
-read -n 1
 script/subst.sh data/actions-runner-controller.sh | bash -
 
 echo "ℹ Installing Runner Deployment & Autoscaler..."
-echo "Press any key to continue."
-read -n 1
 script/subst.sh data/arc.yml | kubectl apply -f -
