@@ -17,10 +17,11 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
+    env "github.com/Netflix/go-env"
 )
 
 const (
-	VarFileName      = "terraform.tfvars.json"
+	VarFileName      = "arc.env"
 	GitHubHostFile   = "github_host.txt"
 	GitHubOrgsFile   = "github_orgs.json"
 	GitHubDotcomHost = "github.com"
@@ -50,14 +51,14 @@ type gamfPayload struct {
 	Manifest   manifest `json:"manifest"`
 }
 
-type TfVars struct {
-	EnterpriseURL  string `json:"enterprise_url"`
-	AppID          string `json:"app_id"`
-	InstallationID string `json:"installation_id"`
-	PrivateKey     string `json:"private_key"`
-	WebhookSecret  string `json:"webhook_secret"`
-	Organization   string `json:"organization"`
-	RunnerGroup    string `json:"runner_group"`
+type Vars struct {
+	EnterpriseURL  string `env:"ARC_GITHUB_ENTERPRISE_URL"`
+	AppID          string `env:"ARC_GITHUB_APP_ID"`
+	InstallationID string `env:"ARC_GITHUB_APP_INSTALLATION_ID"`
+	PrivateKey     string `env:"ARC_GITHUB_APP_PEM_FILE_PATH"`
+	WebhookSecret  string `env:"ARC_GITHUB_APP_WEBHOOK_SECRET"`
+	Organization   string `env:"ARC_GITHUB_APP_ORGANIZATION"`
+	RunnerGroup    string `env:"ARC_GITHUB_APP_RUNNER_GROUP"`
 }
 
 func main() {
@@ -114,7 +115,7 @@ func realMain() error {
 		Message: "Actions Runner Controller GitHub App Installation ID:",
 	}
 
-	vars := TfVars{}
+	vars := Vars{}
 
 	if isGhes {
 		vars.EnterpriseURL = baseURL
@@ -248,14 +249,13 @@ func realMain() error {
 		return err
 	}
 
-	b := &bytes.Buffer{}
-	enc := json.NewEncoder(b)
-	enc.SetIndent("", "    ")
-	if err := enc.Encode(vars); err != nil {
-		return fmt.Errorf("error encoding to json: %\n", err)
+	es, err := env.Marshal(&vars)
+	if err != nil {
+		return fmt.Errorf("error encoding to env: %\n", err)
 	}
 
-	if err := os.WriteFile(VarFileName, b.Bytes(), 0600); err != nil {
+    s := strings.Join(env.EnvSetToEnviron(es), "\n") + "\n"
+	if err := os.WriteFile(VarFileName, []byte(s), 0600); err != nil {
 		return fmt.Errorf("error writing %v: %w\n", VarFileName, err)
 	}
 

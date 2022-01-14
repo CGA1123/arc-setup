@@ -2,7 +2,10 @@ module github.com/CGA1123/arc-config
 
 go 1.17
 
-require github.com/AlecAivazis/survey/v2 v2.3.2
+require (
+	github.com/AlecAivazis/survey/v2 v2.3.2
+	github.com/Netflix/go-env v0.0.0-20210215222557-e437a7e7f9fb
+)
 
 require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect

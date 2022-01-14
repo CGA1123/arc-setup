@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: arc-ingress
+  namespace: actions-runner-system
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: "/$1"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+spec:
+  rules:
+  - host: localhost
+    http:
+      paths:
+      - path: /webhook
+        pathType: Exact
+        backend:
+          service:
+            name: actions-runner-controller-github-webhook-server
+            port:
+              number: 80
+      - path: /webhook/(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: actions-runner-controller-github-webhook-server
+            port:
+              number: 80
+  ingressClassName: nginx

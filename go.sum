@@ -1,5 +1,7 @@
 github.com/AlecAivazis/survey/v2 v2.3.2 h1:TqTB+aDDCLYhf9/bD2TwSO8u8jDSmMUd2SUVO4gCnU8=
 github.com/AlecAivazis/survey/v2 v2.3.2/go.mod h1:TH2kPCDU3Kqq7pLbnCWwZXDBjnhZtmsCle5EiYDJ2fg=
+github.com/Netflix/go-env v0.0.0-20210215222557-e437a7e7f9fb h1:w9IDEB7P1VzNcBpOG7kMpFkZp2DkyJIUt0gDx5MBhRU=
+github.com/Netflix/go-env v0.0.0-20210215222557-e437a7e7f9fb/go.mod h1:9XMFaCeRyW7fC9XJOWQ+NdAv8VLG7ys7l3x4ozEGLUQ=
 github.com/Netflix/go-expect v0.0.0-20180615182759-c93bf25de8e8 h1:xzYJEypr/85nBpB11F9br+3HUrpgb+fcm5iADzXXYEw=
 github.com/Netflix/go-expect v0.0.0-20180615182759-c93bf25de8e8/go.mod h1:oX5x61PbNXchhh0oikYAH+4Pcfw5LKv21+Jnpr6r6Pc=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

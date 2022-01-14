@@ -3,6 +3,9 @@
 github.com/AlecAivazis/survey/v2
 github.com/AlecAivazis/survey/v2/core
 github.com/AlecAivazis/survey/v2/terminal
+# github.com/Netflix/go-env v0.0.0-20210215222557-e437a7e7f9fb
+## explicit
+github.com/Netflix/go-env
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 ## explicit
 github.com/kballard/go-shellquote

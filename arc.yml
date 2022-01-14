@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: arc-runners
+
+---
+
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: RunnerDeployment
+metadata:
+  name: arc-runners
+  namespace: arc-runners
+spec:
+  template:
+    spec:
+      ephemeral: true
+      organization: "${ARC_GITHUB_APP_ORGANIZATION}"
+      group: "${ARC_GITHUB_APP_RUNNER_GROUP}"
+      labels:
+        - "self-hosted"
+        - "arc-runner"
+        - "${CODESPACE_NAME}"
+
+---
+
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: HorizontalRunnerAutoscaler
+metadata:
+  name: arc-runners
+  namespace: arc-runners
+spec:
+  maxReplicas: 10
+  minReplicas: 0
+  scaleTargetRef:
+    name: arc-runners
+  scaleUpTriggers:
+    - duration: "30m"
+      githubEvent:
