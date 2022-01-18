@@ -35,3 +35,6 @@ githubWebhookServer:
         targetPort: http
         protocol: TCP
         name: http
+
+ingress:
+  enabled: false

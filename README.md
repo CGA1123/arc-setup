@@ -1,26 +1,34 @@
 # arc-setup
 
-`arc-setup` is a command-line utility for quickly setting up an [Actions Runner
-Controller] instance on an AKS cluster which will be provisioned.
+`arc-setup` gets you from zero to one with `actions-runner-controller` runner
+in a Codespace via `minikube`.
 
-It requires an Azure account and subscription, GitHub.com or GHES account, and
-an NGROK account.
+For previous version of `arc-setup` which provisioned an AKS cluster, see the
+`azure` branch.
 
-It will walk you through the process of configuring `actions-runner-controller`
-with a default configuration, create the GitHub App that
-`actions-runner-controller` will use to manage your ephemeral runners and
-listen to autoscaling events via webhooks.
+It will automate the process of provisioning your `minikube` cluster,
+installing the required dependencies from `actions-runner-controller`
+(`ingress-nginx`, `cert-manager`), configure and install a GitHub App to
+manage runners and listen to webhook events onto an organisation, and install a
+default `HorizontalrunnerAutoScaler` powered by the `actions-runner-controller`
+webhook server.
 
-Get started with the published docker image:
+## Getting started
+
+Start a codespace via the UI or command line
+
+e.g.
 
 ```console
-$ docker run ghcr.io/cga1123/arc-setup:latest
+$ gh cs ssh -c $(gh cs create -r CGA1123/arc-setup -b minikube)
 ```
 
-Or, build it yourself:
+and run the install script!
 
 ```console
-$ docker build -t arc-setup .
+$ ./script/install.sh
 ```
 
-[Actions Runner Controller]: https://github.com/actions-runner-controller/actions-runner-controller
+This will output a sample workflow YAML that you can use to run a job on your
+newly created ARC cluster!
+

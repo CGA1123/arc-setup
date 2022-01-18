@@ -14,19 +14,18 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
+	env "github.com/Netflix/go-env"
 )
 
 const (
-	VarFileName           = "terraform.tfvars.json"
-	AzureSubscriptionFile = "azure_subscriptions.json"
-	AzureEmailFile        = "azure_email.txt"
-	AzureLocationsFile    = "azure_locations.json"
-	GitHubHostFile        = "github_host.txt"
-	GitHubOrgsFile        = "github_orgs.json"
-	GitHubDotcomHost      = "github.com"
+	VarFileName      = "data/arc.env"
+	GitHubHostFile   = "data/github_host.txt"
+	GitHubOrgsFile   = "data/github_orgs.json"
+	GitHubDotcomHost = "github.com"
 )
 
 type manifestHookAttributes struct {
@@ -53,49 +52,24 @@ type gamfPayload struct {
 	Manifest   manifest `json:"manifest"`
 }
 
-type TfVars struct {
-	SubscriptionID   string `json:"subscription_id"`
-	ResourceGroup    string `json:"resource_group"`
-	Location         string `json:"location"`
-	DNSPrefix        string `json:"dns_prefix"`
-	LetsEncryptEmail string `json:"letsencrypt_email"`
-	EnterpriseURL    string `json:"enterprise_url"`
-	AppID            string `json:"app_id"`
-	InstallationID   string `json:"installation_id"`
-	PrivateKey       string `json:"private_key"`
-	WebhookSecret    string `json:"webhook_secret"`
-	Organization     string `json:"organization"`
-	RunnerGroup      string `json:"runner_group"`
+type Vars struct {
+	EnterpriseURL  string `env:"ARC_GITHUB_ENTERPRISE_URL"`
+	AppID          string `env:"ARC_GITHUB_APP_ID"`
+	InstallationID string `env:"ARC_GITHUB_APP_INSTALLATION_ID"`
+	PrivateKey     string `env:"ARC_GITHUB_APP_PEM_FILE_PATH"`
+	WebhookSecret  string `env:"ARC_GITHUB_APP_WEBHOOK_SECRET"`
+	Organization   string `env:"ARC_GITHUB_APP_ORGANIZATION"`
+	RunnerGroup    string `env:"ARC_GITHUB_APP_RUNNER_GROUP"`
 }
 
 func main() {
 	if err := realMain(); err != nil {
-		fmt.Printf("error: %v", err)
+		fmt.Printf("error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
 func realMain() error {
-	azureSubscriptions, err := loadSubscriptions()
-	if err != nil {
-		return err
-	}
-
-	azureSubscriptionsNames := make([]string, 0, len(azureSubscriptions))
-	for name := range azureSubscriptions {
-		azureSubscriptionsNames = append(azureSubscriptionsNames, name)
-	}
-
-	azureLocations, err := loadLocations()
-	if err != nil {
-		return err
-	}
-
-	azureEmail, err := loadEmail()
-	if err != nil {
-		return err
-	}
-
 	githubHost, err := loadHost()
 	if err != nil {
 		return err
@@ -118,38 +92,24 @@ func realMain() error {
 	}
 
 	isGhes := githubHost != GitHubDotcomHost
-
-	gamfHost := "https://gamf.svc.bissy.io"
-	if envGamfHost := os.Getenv("GAMF_HOST"); envGamfHost != "" {
-		gamfHost = envGamfHost
+	codespaceName := os.Getenv("CODESPACE_NAME")
+	if codespaceName == "" {
+		return fmt.Errorf("CODESPACE_NAME is empty")
 	}
 
-	azureSubscriptionsID := &survey.Select{
-		Message: "What Microsoft Azure Subscription ID do you want to use to create resources?",
-		Help:    "This is the subscriptions ID that will be used by Terraform to provision a new Azure Kubernetes Service (AKS) Cluster to deploy Actions Runner Controller and related require resources to.",
-		Options: azureSubscriptionsNames,
-	}
-
-	azureLocation := &survey.Select{
-		Message: "In which Azure Region should we provision resources?",
-		Options: azureLocations,
-	}
-
-	letEncrypt := &survey.Input{
-		Message: "What email address should be used to get a Let's Encrypt TLS Certificate for the webhook server?",
-		Default: azureEmail,
-		Help:    "In order to create a secure ingress route to the Actions Runner Controller Webhook server, we need to generate a TLS certificate for it via Let's Encrypt. We need an email address in order to do that!",
-	}
+	codespacesURL := fmt.Sprintf("https://%v-80.githubpreview.dev", codespaceName)
+	gamfHost := fmt.Sprintf("%v/gamf", codespacesURL)
 
 	githubOrg := &survey.Select{
-		Message: "GitHub Org:",
+		Message: "Which GitHub Org should Actions Runner Controller be installed on?",
 		Help:    "This is the GitHub Organization which the Actions Runner Controller will manager Self-Hosted Runners on.",
 		Options: githubOrganizationNames,
 	}
 
 	// TODO: autocreate? requires gh cli login to have the correct permissions :thinking:
 	runnerGroup := &survey.Input{
-		Message: "GitHub Actions Runner Group:",
+		Message: "Which GitHub Actions Runner Group should Actions Runner Controller manage runners on?",
+		Default: "Default",
 		Help:    "This is the GitHub Actions Self-Hosted Runner Group that Actions Runner Controller will manager.",
 	}
 
@@ -157,33 +117,18 @@ func realMain() error {
 		Message: "Actions Runner Controller GitHub App Installation ID:",
 	}
 
-	vars := TfVars{}
-	vars.ResourceGroup = namePrefix
-	vars.DNSPrefix = namePrefix
+	vars := Vars{}
 
 	if isGhes {
 		vars.EnterpriseURL = baseURL
 	}
 
-	// Azure
-	subName := ""
-	if err := ask(azureSubscriptionsID, &subName); err != nil {
-		return err
-	}
-	vars.SubscriptionID = azureSubscriptions[subName]
-
-	if err := ask(azureLocation, &vars.Location); err != nil {
-		return err
-	}
-	if err := ask(letEncrypt, &vars.LetsEncryptEmail); err != nil {
-		return err
-	}
 	if err := ask(githubOrg, &vars.Organization); err != nil {
 		return err
 	}
 	orgID := githubOrganizations[vars.Organization]
 
-	hookUrl := fmt.Sprintf("https://%v.%v.cloudapp.azure.com", namePrefix, vars.Location)
+	hookUrl := fmt.Sprintf("%v/webhook", codespacesURL)
 	manifestPayload, err := json.Marshal(buildGamfPayload(namePrefix, vars.Organization, githubHost, hookUrl))
 	if err != nil {
 		return fmt.Errorf("failed to encode gamf payload: %w", err)
@@ -247,18 +192,23 @@ func realMain() error {
 		} else {
 			url = "https://api.github.com/app-manifests/" + doneResponse.Code + "/conversions"
 		}
+
 		res, err := http.DefaultClient.Post(url, "", nil)
 		if err != nil {
 			return fmt.Errorf("failed to make request to GitHub: %w", err)
 		}
 
 		if res.StatusCode > 399 || res.StatusCode < 200 {
+			fmt.Printf("Got %s during conversion, retrying in 5s...\n", res.Status)
+			time.Sleep(5 * time.Second)
 			continue
 		}
 
 		if err := json.NewDecoder(res.Body).Decode(&conversionResponse); err != nil {
 			return fmt.Errorf("error decoding response: %w", err)
 		}
+
+		break
 	}
 	if conversionResponse.ID == 0 {
 		return fmt.Errorf("failed to convert app manifest into application")
@@ -306,14 +256,13 @@ func realMain() error {
 		return err
 	}
 
-	b := &bytes.Buffer{}
-	enc := json.NewEncoder(b)
-	enc.SetIndent("", "    ")
-	if err := enc.Encode(vars); err != nil {
-		return fmt.Errorf("error encoding to json: %\n", err)
+	es, err := env.Marshal(&vars)
+	if err != nil {
+		return fmt.Errorf("error encoding to env: %\n", err)
 	}
 
-	if err := os.WriteFile(VarFileName, b.Bytes(), 0600); err != nil {
+	s := strings.Join(env.EnvSetToEnviron(es), "\n") + "\n"
+	if err := os.WriteFile(VarFileName, []byte(s), 0600); err != nil {
 		return fmt.Errorf("error writing %v: %w\n", VarFileName, err)
 	}
 
@@ -385,15 +334,6 @@ func randomName() (string, error) {
 	return "arc-setup-" + hex.EncodeToString(bytes), nil
 }
 
-func loadEmail() (string, error) {
-	b, err := ioutil.ReadFile(AzureEmailFile)
-	if err != nil {
-		return "", fmt.Errorf("failed to read file: %w", err)
-	}
-
-	return strings.TrimSpace(string(b)), nil
-}
-
 func loadHost() (string, error) {
 	b, err := ioutil.ReadFile(GitHubHostFile)
 	if err != nil {
@@ -401,51 +341,6 @@ func loadHost() (string, error) {
 	}
 
 	return strings.TrimPrefix(strings.TrimSpace(string(b)), "api."), nil
-}
-
-func loadSubscriptions() (map[string]string, error) {
-	b, err := ioutil.ReadFile(AzureSubscriptionFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
-	}
-
-	var subs []struct {
-		Name string `json:"name"`
-		ID   string `json:"id"`
-	}
-
-	if err := json.Unmarshal(b, &subs); err != nil {
-		return nil, fmt.Errorf("error unmarshaling subs: %w", err)
-	}
-
-	subMap := make(map[string]string, len(subs))
-	for _, sub := range subs {
-		subMap[sub.Name] = sub.ID
-	}
-
-	return subMap, nil
-}
-
-func loadLocations() ([]string, error) {
-	b, err := ioutil.ReadFile(AzureLocationsFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
-	}
-
-	var locs []struct {
-		Name string `json:"name"`
-	}
-
-	if err := json.Unmarshal(b, &locs); err != nil {
-		return nil, fmt.Errorf("error unmarshaling locations: %w", err)
-	}
-
-	locations := make([]string, len(locs))
-	for i, loc := range locs {
-		locations[i] = loc.Name
-	}
-
-	return locations, nil
 }
 
 func loadOrgs() (map[string]int, error) {

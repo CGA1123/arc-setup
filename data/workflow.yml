@@ -1,0 +1,12 @@
+name: Echo
+on:
+  workflow_dispatch:
+
+jobs:
+  echo:
+    runs-on:
+      - self-hosted
+      - arc-runner
+      - ${CODESPACE_NAME}
+    steps:
+      - run: echo "hello, world!"
