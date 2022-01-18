@@ -20,7 +20,7 @@ Start a codespace via the UI or command line
 e.g.
 
 ```console
-$ gh cs ssh -c $(gh cs create -r CGA1123/arc-setup -b minikube)
+$ gh cs ssh -c $(gh cs create -r CGA1123/arc-setup -b main)
 ```
 
 and run the install script!
