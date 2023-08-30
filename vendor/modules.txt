@@ -33,5 +33,5 @@ golang.org/x/term
 ## explicit; go 1.17
 golang.org/x/text/transform
 golang.org/x/text/width
-# gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+# gopkg.in/yaml.v3 v3.0.0
 ## explicit
